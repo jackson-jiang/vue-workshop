@@ -7,6 +7,11 @@
     <div v-if="errorMsg" style="color:red">
       {{ errorMsg }}
     </div>
+    <div>
+      <!-- 不要一起显示，否则响应式的属性重绘会导致非响应式重绘 -->
+      <div>inject响应式{{ this.form.status }} (触发渲染，顺带更新下一行)</div>
+      <div>inject非响应式 {{ this.status.value }}</div>
+    </div>
   </div>
 </template>
 
@@ -16,7 +21,7 @@ import Schema from 'async-validator'
 export default {
   name: 'KFormItem',
   componentName: 'KFormItem',
-  inject: ['form'],
+  inject: ['form', 'status'],
   mounted() {
     // ! 监听子元素触发校验
     this.$on('validate', this.validate)

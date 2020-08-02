@@ -4,6 +4,7 @@
   </div>
 </template>
 <script>
+let status = {value:1}
 /* eslint-disable */
 export default {
   name: 'KForm',
@@ -17,11 +18,13 @@ export default {
   },
   provide() {
     return {
-      form: this
+      form: this,
+      status,
     }
   },
   data() {
     return {
+      status: 1,
       fields: []
     }
   },
@@ -40,6 +43,11 @@ export default {
     }
   },
   methods: {
+    // ! provide/inject 响应式测试
+    updateStatus() {
+      this.status++
+      status.value++
+    },
     async validate() {
       return (await  Promise.all(
         // 直接子元素调用方式

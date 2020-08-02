@@ -24,7 +24,6 @@
   </div>
 </template>
 <script>
-/* eslint-disable */
 import KForm from "./components/KForm";
 import KFormItem from "./components/KFormItem";
 import KInput from "./components/KInput";
@@ -57,6 +56,7 @@ export default {
   },
   methods: {
     async submit() {
+      this.$refs.form.updateStatus()
       const validateResult = await this.$refs.form.validate()
       if (validateResult.length > 0) {
         this.$create(Notice, {
