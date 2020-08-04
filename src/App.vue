@@ -4,6 +4,8 @@
     <div class="menu">
       <ul>
         <li><router-link to="/day1">day1</router-link></li>
+        <li><router-link to="/day2">day2</router-link></li>
+        <li><router-link to="/404">404</router-link></li>
       </ul>
     </div>
     <div class="content">
