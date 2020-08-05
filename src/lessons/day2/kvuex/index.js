@@ -3,27 +3,42 @@ class Store {
   constructor ({state, mutations, actions, getters}) {
     // 响应式 2
     const store = this
-    // 响应式对象
-    this._state = _Vue.observable(state)
-    // 处理getters，访问this.getters时调用getters方法
+    // getters
+    // ! 暗号
+    // ! 天王盖地虎
     this._getters = {}
+    let computed = {}
+    // 拦截限定getters的key，防止_vm暴露
     for (const key in getters) {
       const fn = getters[key]
+      computed[key] = function () {
+        return fn(store._state)
+      }
       Object.defineProperty(this._getters, key, {
         get() {
-          return fn.apply(store)
+          return store._vm[key]
         }
       })
     }
+    store._vm = new _Vue({
+      data() {
+        return {
+          $$state: state
+        }
+      },
+      computed
+    })
+    // 响应式对象
+    this._state = store._vm.$data.$$state
     this._mutations = mutations
     this._actions = actions
 
     this.dispatch = function (type, payload) {
-      const func = this._actions[type]
+      const func = this._actions[type].bind(this)
       func && func(this, payload)
     }
     this.commit = function (type, payload) {
-      const func = this._mutations[type]
+      const func = this._mutations[type].bind(this)
       func && func(this._state, payload)
     }
   }

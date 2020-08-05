@@ -195,6 +195,171 @@
 
 
 
+## 02 全家桶原理和实现
+
+### vue-router
+
+> vue-router的意义是：使用VUE能够构建SPA应用
+
+**使用**
+
+* 安装 `vue add router`
+
+* 配置插件
+
+  ```js
+  // router.js
+  import VueRouter from 'vue-router'
+  import routes from './routes'
+  Vue.use(VueRouter)
+  
+  export default new VueRouter({..., routes }) // 路由表
+  ```
+
+* 在Vue根实例引入
+
+  ```javascript
+  import router from './router'
+  new Vue({  router, }).$mount("#app")
+  ```
+
+* 组织页面结构，配置视图和导航
+
+  ```html
+  <router-view></router-view>
+  <router-link to="/">Home</router-link>
+  <router-link to="/about">About</router-link>
+  ```
+
+
+
+**源码实现**
+
+需求：
+
+* 插件化，Router类
+* 提供`$router`，`\$router.push`
+* 提供两个全局组件`<router-view>`和`<router-link>`
+* 监听URL变化：window.addEventListener('hashchange')
+* 响应式的更换router-view中的组件
+
+嵌套路由的解决方式：
+
+
+
+### vuex
+
+> Vuex 集中式存储管理应⽤的所有组件的状态，并以相应的规则保证状态以可预测的⽅式发⽣变化
+
+TODO：上图
+
+**源码实现**
+
+* 插件化，Vuex类
+* 提供`$store`
+* 实现响应式的`state`和`getter`
+* 实现`commit`和`dispatch`
+
+
+
+## 加餐
+
+### 01 实现递归组件
+
+实现递归组件有三个核心原则：第一自己调用自己，第二要有终止条件，第三name是必要的，例子：
+
+```vue
+<template>
+    <div>
+        <h3>{{data.name}}</h3> <!-- 有条件嵌套 -->
+        <Node v-for="n in data.children" :key="n.name" :data="n"> </Node>
+    </div>
+</template>
+<script>
+    export default {
+        name: 'Node', // name对递归组件是必要的        
+        props: {
+            data: {
+                type: Object,
+                require: true
+            },
+        },
+    }
+</script>
+```
+
+
+
+### 02 如何编写Vue插件
+
+> vue插件需要是一个函数或者是包含install函数的对象，一般使用第二种用class定义
+
+* 在install函数中使用局部变量`_Vue`引用全局实例`Vue`以便后期使用
+
+  ps: 不用`import Vue`获得`Vue`是为了防止它被打包到组件中
+
+* 定义全局方法：插件创建时Vue实例还不存在，可以使用全局的**mixins**让定义后移在beforeCreate中注入
+
+  ```javascript
+  // 将定义时机后移
+  function install() {
+    Vue.mixins({
+      beforeCreate() {
+        _Vue.prototype.xxx= xxx
+      }
+    })
+  }
+  ```
+
+
+
+### 03 如何让对象变成响应式
+
+* Vue.util.defineReactive
+* Vue.obserable
+* new Vue() + vm._data/vue.$data
+
+
+
+### 04 Vue MVVM框架的思考
+
+* 响应式(reactive)的数据
+
+  * 2.6 通过属性劫持(getter, setter)
+  * 3.0 通过proxy，无需预处理，无需递归，性能提升的原因之一
+
+* UI渲染
+
+  * 通过compiler将template编译成render函数
+  * render函数执行生成vdom
+  * 通过dom diff算法计算出变化的节点
+  * 渲染dom树, 初次渲染通过$mount() vdom --> dom
+
+* 数据变化触发UI渲染（get收集依赖，set触发依赖）
+
+  * 调用render函数会访问其中响应式数据的属性，这时会收集对该属性的依赖，将该render加入属性的依赖数组中
+  * 为响应式属性设置值时，会触发依赖的函数
+
+  
+
+### 05 Vue中对象的形态
+
+* Vue class
+
+  用来处理全局的功能：使用插件，声明全局的组件，全局混入，prototype属性
+
+* Vue config
+
+  vue的配置对象，通过new Vue，Vue.extend等方式创建Vue实例：vm
+
+* Vue实例vm
+
+  vue组件的object api形式，可以操作_data, computed，router...，调用$mount可以获得dom （\$el属性）
+
+
+
+
+
 ## 翻车日记
 
 ### Day1
@@ -216,3 +381,27 @@
 4. async-validator，使用async/await的方式使用，返回验证失败的方式是Promise.reject，没有使用try catch处理，加上控制台的报错很奇葩看不出来是Promise.reject卡了N久
 
 5. 写代码时eslint总出提示，而且vscode不自动修复效率很低，打断思路
+
+### Day2
+
+1. router-view, render函数h()一个vm实例，其实需要的是配置，TODO: vue中的对象得几种形态
+
+ 	2. 用法不对卡了一会儿_Vue.util.defineReactive(object, key, func)，没传key总多了一个undefined
+   	3. 写getters忘了return
+
+## Next
+
+### 源码学习
+
+* vue
+* vuex
+* vue-router
+* element-ui
+
+
+
+### 最佳实践
+
+
+
+### 资源/工具/库

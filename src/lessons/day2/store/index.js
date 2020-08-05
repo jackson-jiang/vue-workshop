@@ -7,7 +7,6 @@ const store = new Vuex.Store({
   state: { counter: 0 },
   mutations: {
     add (state, num=1) {
-      // 如何调用？
       state.counter += num
     }
   },
@@ -19,8 +18,8 @@ const store = new Vuex.Store({
     }
   },
   getters: {
-    double () {
-      return this.state.counter * 2
+    double (state) {
+      return state.counter * 2
     }
   }
 })
