@@ -245,6 +245,8 @@
 
 嵌套路由的解决方式：
 
+<img src="./assets/vue02 nested router.png" width="900"/>
+
 
 
 ### vuex
@@ -259,6 +261,39 @@ TODO：上图
 * 提供`$store`
 * 实现响应式的`state`和`getter`
 * 实现`commit`和`dispatch`
+
+
+
+## 03 手写Vue源码
+
+### MVVM框架的三要素
+
+数据响应式、模板引擎及其渲染
+
+- 数据响应式，是典型的观察者模式，主要的任务是提供收集依赖的方法(set)，监听数据变化，并通知依赖函数
+
+- 模板引擎，提供描述视图的模板语法
+
+  解析模板中的动态元素，以及对应的update方法(-->vdom)，并将方法作为**观察者**，添加到对应数据的依赖队列中
+
+- 渲染：如何将模板转换为html （vdom=>dom)
+
+
+
+### 手写Vue
+
+无vdom+渲染
+
+* KVue：框架构造函数
+* Observer：执⾏数据响应化（分辨数据是对象还是数组）
+* Compile：编译模板，初始化视图，收集依赖（更新函数、watcher创建）
+* Watcher：执⾏更新函数（更新dom） Dep：管理多个Watcher，批量更新
+* Dep：管理多个Watcher，批量更新
+
+
+
+
+<img src="./assets/vue03 mvvm.webp" width="900"/>
 
 
 
@@ -322,6 +357,16 @@ TODO：上图
 
 
 ### 04 Vue MVVM框架的思考
+
+MVVM：数据变化自动更新视图
+
+**哪些UI需要可以更新？**编译动态部分--词法解析 指令 {{}} @等
+
+**怎么更新？**每个词法对应一个updater，传入dom，vm，key（expression）==>vdom
+
+**数据变了更新谁？** compile时将update封装成watcher放入prop.Dep=[]（全局变量搭桥，vm.prop[get]收集）
+
+**什么时候更新？**响应式属性值变化时
 
 * 响应式(reactive)的数据
 
@@ -397,6 +442,26 @@ TODO：上图
 * vuex
 * vue-router
 * element-ui
+
+### 三大框架MVVM设计横纵对比x响应式+模板引擎+渲染，三维表格？
+
+vue1,2,3 getter, proxy
+
+ng
+
+react, setState
+
+
+
+### 不编译直接使用render的组件如何收集依赖？调一下？
+
+
+
+MVVM参考
+
+https://www.cnblogs.com/Michelle20180227/p/9790149.html
+
+
 
 
 

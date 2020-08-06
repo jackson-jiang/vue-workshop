@@ -1,6 +1,7 @@
 // TODO 动态定义
-import Day1 from '@/lessons/day1/index.vue'
-import Day2 from '@/lessons/day2/index.vue'
+import Day1 from '@/lessons/day1'
+import Day2 from '@/lessons/day2'
+// import DeDuplicate from '@/basic/DeDuplicate'
 import Home from '@/Home.vue'
 export default [
   {
@@ -14,6 +15,11 @@ export default [
   {
     path: '/day2',
     component: Day2,
+  },
+  {
+    path: '/de-duplicate',
+    // component: DeDuplicate,
+    component: () => import('@/basic/DeDuplicate')
   },
   {
     path: '*'
