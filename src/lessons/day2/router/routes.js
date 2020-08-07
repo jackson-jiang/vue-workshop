@@ -17,6 +17,10 @@ export default [
     component: Day2,
   },
   {
+    path: '/day3',
+    component: () => import('@/lessons/day3')
+  },
+  {
     path: '/de-duplicate',
     // component: DeDuplicate,
     component: () => import('@/basic/DeDuplicate')

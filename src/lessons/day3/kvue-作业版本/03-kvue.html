@@ -1,0 +1,38 @@
+<meta charset="UTF-8">
+<div id="app">
+  <p>{{counter}}</p>
+  <p k-text="counter"></p>
+  <p k-html="desc"></p>
+  <p><input type="text" k-bind:value="val" k-on:input="handleInput" @blur="handleBlur"/></p>
+  <p><input type="text" k-model="age"/></p>
+  <p>age is {{age}}</p>
+</div>
+
+<!-- <script src="../node_modules/vue/dist/vue.js"></script> -->
+<script src="kvue.js"></script>
+
+<script>
+  const app = new KVue({
+    el:'#app',
+    data: {
+      counter: 1,
+      desc: '<span style="color:red">村长好</span>',
+      val: 2,
+      age: 0,
+    },
+    methods: {
+      handleInput (e) {
+        console.log('input'+e.target.value)
+      },
+      handleBlur (e) {
+        console.log('blur'+e.target.value)
+      }
+    }
+  })
+  setTimeout(() => {
+    app.counter++
+    app.val++
+    app.age++
+  }, 1000);
+
+</script>
