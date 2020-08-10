@@ -253,7 +253,7 @@
 
 > Vuex 集中式存储管理应⽤的所有组件的状态，并以相应的规则保证状态以可预测的⽅式发⽣变化
 
-TODO：上图
+<img src="./assets/vue03-vuex.png" width="900"  height="450"/>
 
 **源码实现**
 
@@ -276,9 +276,7 @@ TODO：上图
 
   解析模板中的动态元素，以及对应的update方法(-->vdom)，并将方法作为**观察者**，添加到对应数据的依赖队列中
 
-- 渲染：如何将模板转换为html （vdom=>dom)
-
-
+- 渲染：如何将模板转换为html （vdom=>dom) $mount
 
 ### 手写Vue
 
@@ -290,10 +288,101 @@ TODO：上图
 * Watcher：执⾏更新函数（更新dom） Dep：管理多个Watcher，批量更新
 * Dep：管理多个Watcher，批量更新
 
-
-
-
 <img src="./assets/vue03 mvvm.webp" width="900"/>
+
+
+## 04 Vue源码解析
+
+### 如何学习源码
+
+* 按照api仿写核心功能
+* 读源码
+* 整理整体结构，流程关键技术的思维导图
+* 调试--验证是否读懂了
+
+### Vue2.6代码学习
+
+项⽬地址：https://github.com/vuejs/vue
+
+`package.json`中`dev`加`--sourcemap`参数
+
+
+
+**代码调试**
+
+`npm run dev` 会在dist中生成带有`sourcemap`的`vue`代码
+
+编写测试`html`文件引用`./dist/vue.js`
+
+* 本地文件调试，直接打开测试用
+
+* web服务器serve文件调试，安装`http-server`，在根目录下运行，输入测试文件的url即可
+
+* 使用vscode作为debugger
+
+  * 安装`debugger for chrome`插件，并配置`launch.json`
+
+  * 文件调试
+
+    ```js
+    { // 文件方式直接打开一个文件，不需要启动服务
+        "name": "Launch index.html",
+        "type": "chrome",
+        "request": "launch",
+        "file": "${workspaceFolder}/index.html"
+    },
+    ```
+
+  * web服务器serve文件调试
+
+    ```js
+    { // url方式，需要启动http-server
+        "name": "Launch localhost",
+        "type": "chrome",
+        "request": "launch",
+        "url": "http://localhost:8080", // url要能访问到服务器
+        "webRoot": "${workspaceFolder}/"，
+        // 需要时添加
+        // "webRoot": "${workspaceFolder}/wwwroot"
+    },
+    ```
+
+  * attach调试
+
+    命令行/chrome快捷方式加启动参数`--remote-debugging-port=9222`
+
+    ```js
+    {
+        "name": "Attach to url with files served from ./out",
+        "type": "chrome",
+        "request": "attach",
+        "port": 9222,
+        "url": "<url of the open browser tab to connect to>",
+        "webRoot": "${workspaceFolder}/out"
+    }
+    ```
+
+    
+
+**整体结构**
+
+<img src="./assets/vue04-source-structures.png" width="300" height="600"/><img src="./assets/vue04-source-structures-b.png" width="300" height="600"/>
+
+
+
+**初始化流程**
+
+文字描述/流程图
+
+<img src="./documents/20200807 vue04-源码解析/作业/20200807+江霖+vue04.png" width="1024" height="600"/>
+
+
+
+**响应式（TODO）**
+
+文字描述/流程图
+
+
 
 
 
@@ -430,9 +519,14 @@ MVVM：数据变化自动更新视图
 ### Day2
 
 1. router-view, render函数h()一个vm实例，其实需要的是配置，TODO: vue中的对象得几种形态
-
  	2. 用法不对卡了一会儿_Vue.util.defineReactive(object, key, func)，没传key总多了一个undefined
    	3. 写getters忘了return
+
+### Day3
+
+1. node的子节点使用了children，应该使用childNodes，否则获取不到text节点
+2. v-model时候卡住了，应为定义了一个‘model’属性和model的处理函数冲突了，应该做一些命名方面/作用域的限制
+3. 模块化和函数编程不足，实现了功能但是没有很好的抽象成模块，功能函数
 
 ## Next
 
@@ -450,6 +544,10 @@ vue1,2,3 getter, proxy
 ng
 
 react, setState
+
+
+
+### 逐渐完善手写的框架
 
 
 
