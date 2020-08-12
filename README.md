@@ -370,17 +370,70 @@
 
 
 
-**初始化流程**
+### **初始化流程**
 
-文字描述/流程图
+new Vue() => _init() => $mount() => mountComponent() => updateComponent()/new Watcher() =>  render() => _update()
 
 <img src="./documents/20200807 vue04-源码解析/作业/20200807+江霖+vue04.png" width="1024" height="600"/>
 
 
 
-**响应式（TODO）**
+老杨的画的：https://www.processon.com/view/link/5da6c108e4b002a6448895c3
+
+
+
+### **响应式（TODO）**
 
 文字描述/流程图
+
+
+
+## 05 Vue源码解析 02
+
+### vue的异步更新
+
+* 异步：只要侦听到数据变化，Vue 将开启⼀个队列，并缓冲在同⼀事件循环中发⽣的所有数据变更。
+* 批量：如果同⼀个 watcher 被多次触发，只会被推⼊到队列中⼀次。去重对于避免不必要的计算 和 DOM 操作是⾮常重要的。然后，在下⼀个的事件循环“tick”中，Vue 刷新队列执⾏实际⼯作。 
+* 异步策略：Vue 在内部对异步队列尝试使⽤原⽣的 Promise.then、MutationObserver 或setImmediate，如果执⾏环境都不⽀持，则会采⽤ setTimeout 代替。
+
+<img src="documents\20200810 vue05-源码解析2\作业\20200810+江霖+vue05.png" width="1366"/>
+
+
+
+## 组件渲染
+
+### 虚拟dom（vdom, vnode)
+
+> 虚拟DOM（Virtual DOM）是对DOM的JS抽象表示，它们是JS对象，能够描述DOM结构和关系。应⽤ 的各种状态变化会作⽤于虚拟DOM，终映射到DOM上
+
+
+
+**虚拟dom是在vue2.0中加入的**
+
+vue 1.0中有细粒度的数据变化侦测，它是不需要虚拟DOM的，但是细粒度造成了⼤量开销，这对于⼤ 型项⽬来说是不可接受的。因此，vue 2.0选择了中等粒度的解决⽅案，每⼀个组件⼀个watcher实例， 这样状态变化时只能通知到组件，再通过引⼊虚拟DOM去进⾏⽐对和渲染
+
+
+
+**虚拟dom的优点**
+
+* 跨平台，vdom是对dom的抽象，提供不同的vdom渲染函数就可以在不同平台使用
+* 高效
+  * 最小化更新，通过dom diff算法比较出变化的部分进行patch更新
+  * 批量异步更新
+* 轻量
+* 双缓存，依次性将所有变化绘制出来
+
+
+
+### 渲染过程
+
+watcher.run() => componentUpdate() => render() => update() => patch()
+
+<img src="assets\vue05-render-process.png" width="1366"/>
+
+
+
+
 
 
 
@@ -555,9 +608,23 @@ react, setState
 
 
 
+### 使用snabbdom完善手写的mvvm代码
+
+渲染部分，通知到组件 vue1 - vue2
+
+https://github.com/snabbdom/snabbdom
+
+
+
 MVVM参考
 
 https://www.cnblogs.com/Michelle20180227/p/9790149.html
+
+
+
+dom diff
+
+https://www.jianshu.com/p/bf9a8b4773ee
 
 
 
