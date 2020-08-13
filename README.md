@@ -400,9 +400,11 @@ new Vue() => _init() => $mount() => mountComponent() => updateComponent()/new Wa
 
 
 
-## 组件渲染
+### 组件渲染
 
-### 虚拟dom（vdom, vnode)
+> Vue使用render函数将组件转换为vnode，之后使用updateComponent将vnode转换为dom渲染到页面上
+
+#### 虚拟dom（vdom, vnode)
 
 > 虚拟DOM（Virtual DOM）是对DOM的JS抽象表示，它们是JS对象，能够描述DOM结构和关系。应⽤ 的各种状态变化会作⽤于虚拟DOM，终映射到DOM上
 
@@ -425,11 +427,152 @@ vue 1.0中有细粒度的数据变化侦测，它是不需要虚拟DOM的，但�
 
 
 
-### 渲染过程
+#### 渲染过程
 
 watcher.run() => componentUpdate() => render() => update() => patch()
 
 <img src="assets\vue05-render-process.png" width="1366"/>
+
+
+
+## 06 Vue源码解析03
+
+### 模板编译
+
+> 模板编译的目的是生成组件得render函数
+
+
+
+**为什么需要编译**
+
+vue组件渲染需要通过执行`render()`函数将组件转换成`vnode`，使用render编写组件结构有很多缺点：过于复杂，不够直观效率太低。一种解决方案是：用户编写`<template>` 再由`compiler`变成`render`函数
+
+
+
+**编译过程**
+
+编译可以将一种语言转换为另一种语言，一般有：编译（parse），转换（transform）和生成（generate）三个部分。vue中的编译分为：编译，优化和生成，通过编译将template转换由createElement描述结构的render方法。优化对静态节点进行了标记，静态节点不需要做对比和更新操作
+
+<img src=".\assets\vue06-compile-process.png" width="1366"/>
+
+
+
+### 组件化原理
+
+> 组件被当作定制化元素处理，当父组件渲染遇到comp-元素时会创建comp vnode和实例化
+>
+> comp内部的template和逻辑由组件自己处理
+
+new Vue() => $mount() => vm._render() => createElement() => createComponent()
+=> vm._update() => patch() => createElm => createComponent()
+
+<img src="documents\20200812 vue06-源码解析3\作业\20200812+江霖+vue06.png" width="1366"/>
+
+
+
+## 07 ssr概念以及应用
+
+### SSR概念
+
+<img src="./assets/vue07-ssr.jpg"/>
+
+**什么是SSR？**
+
+SSR (server side render，服务器端渲染）是指在服务器端生成完整的HTML再由浏览器解析渲染成页面，如：jsp, php, asp...，其他渲染策略还有：
+
+* CSR(server side render，客户端渲染) 主要在客户端通过JS生成dom渲染，如：
+
+  react，vue，angular，dojo...
+
+* 同构渲染（ SSR+CSR）: 服务器客户端使用同一套代码，服务器负责生成首屏html页面，首次渲染后客户端代码接管之后的交互
+
+
+
+**SSR解决了什么问题？**
+
+SSR解决了首屏性能问题和*SEO*（Search Engine Optimization，搜索引擎优化的问题）
+
+* 首屏性能，用户从输入URL到看到页面(FP)的时间。ps: 首屏 != 首页
+
+  CSR在下载解析HTML之后还需要多次访问网络下载关键资源(JS, CSS)并解析执行后才能渲染页面
+
+  SSR直接在服务器端生成HTML和相关数据交给浏览器渲染
+
+* SEO：利用搜索引擎的规则提高网站在有关搜索引擎内的自然排名。让搜索引擎能够找到你的网站
+
+  CSP使用JS操作dom渲染页面，搜索引擎不能获取页面结构和连接等信息不利于SEO
+
+
+
+**渲染技术的优缺点**
+
+* SSR
+  * 优点是首屏性能高和SEO
+  * 缺点是交互体验不好每次都要请求完整页面并刷新，交互代码编写复杂
+* CSR
+  * 优点
+    * 关注点分离前后端通过api交互，前后端项目解耦可以独立的开发部署对接其他服务
+    * 首屏后，局部刷新，响应速度块，跳转页面不需要请求后端服务
+    * 交互体验好，可以实现炫酷的富交互效果，动画，滚动加载等
+    * 编码上专注业务逻辑，无需处理dom
+  * 缺点
+    * 首屏性能不高，优化方法：
+      * 使用http2在返回html同时将核心资源一起返回，减少交互次数
+      * 使用chunk split, 只加载必要的资源
+      * 使用CDN，提高用户访问的响应速度和成功率
+      * 利用浏览器缓存和PWA等技术较少网络访问
+    * 需要解决SEO的问题，解决方法：
+      * 如果只需要对静态页面做SEO, 使用prerender-spa-plugin静态化
+      * shadow site
+      * **搜索引擎爬虫搞定SPA的问题**
+* 同构
+  * 优点：SSR + CSR
+  * 缺点：
+    * 复杂度增高：
+      * 架构复杂度：需要部署SSR服务器
+      * 代码复杂度：需要编写兼容的前后段代码实现
+    * 技术框架需要支持同构渲染（vue，react..）
+    * 性能问题，每次页面请求都需要服务器进行渲染
+      * 分布式
+      * 缓存，协商缓存，PWA减少交互次数
+      * 静态化，
+      * 监控cpu，内存超过阈值时进行降级处理，直接返回SPA页面
+
+
+
+**技术选型场景**
+
+* seo
+  * 部分静态页需要seo，使用: CSR + prerender-spa-plugin
+  * 已存在项目：CSR + 为爬虫提供shadow site （爬⾍puppeteer ）
+  * SSR同构
+* 首屏性能
+  * 要求不是很高：CSR+优化策略
+  * SSR同构
+
+
+
+**SSR如何部署？**
+
+
+
+### SSR实战（TODO）
+
+环境搭建 express, vue-server-render, webpack
+
+服务端代码
+
+客户端代码改造：入口，实例function化
+
+webpack构建
+
+router：
+
+vuex：asyncData
+
+
+
+### nuxt实战（TODO）
 
 
 
@@ -500,9 +643,11 @@ watcher.run() => componentUpdate() => render() => update() => patch()
 
 ### 04 Vue MVVM框架的思考
 
+TODO：三大框架横纵对比，流程图+源码+测试代码
+
 MVVM：数据变化自动更新视图
 
-**哪些UI需要可以更新？**编译动态部分--词法解析 指令 {{}} @等
+**哪些UI需要可以更新？**编译动态部分--词法解析 指令 {{}} @等。词法标记
 
 **怎么更新？**每个词法对应一个updater，传入dom，vm，key（expression）==>vdom
 
@@ -544,6 +689,12 @@ MVVM：数据变化自动更新视图
   vue组件的object api形式，可以操作_data, computed，router...，调用$mount可以获得dom （\$el属性）
 
 
+
+### 06 抽象
+
+抽象是一种提高代码通用性的手段，可以减少耦合性，方便测试修改和扩展
+
+vdom,  AST，api，都是抽象。
 
 
 
