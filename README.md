@@ -576,9 +576,409 @@ vuex：asyncData
 
 
 
+## 08 vue+TS实践
+
+> TypeScript是一种由微软开发的[开源](https://baike.baidu.com/item/开源/246339)、跨平台的编程语言。它是[JavaScript](https://baike.baidu.com/item/JavaScript)的超集，最终会被编译为JavaScript代码。TypeScript添加了**<u>可选的</u>**静态类型系统、很多尚未正式发布的ECMAScript新特性（如装饰器 [1]  ）。2012年10月，微软发布了首个公开版本的TypeScript，2013年6月19日，在经历了一个预览版之后微软正式发布了正式版TypeScript。当前最新版本为TypeScript4.0(beat版)。
+
+**TS有个毛用？**
+
+ts可以做静态类型检查，使程序更具有可预测性，编辑器可以给出语法建议(对象属性可以点出来)和类型相关的错误提示
 
 
 
+环境搭建（前/后）
+
+```shell
+npm i typescript ts-node-dev tslint @types/node -D 
+
+```
+
+vue-property-decorator
+
+
+
+**核心语法**
+
+```typescript
+// 基本类型
+// 注意是小写
+const str: string
+const num: number
+const tr: boolean
+const any: any
+// 声明+赋值简写
+const str = 'string'
+// 数组
+const strArr: string[]
+// 函数
+function greeting(person: string): string {  return "Hello, " + person; } 
+function greeting(person: string, age?:number): string {  return "Hello, " + person; } 
+function greeting(person: string, age?:number, prefix = 'hello'): string {  return "Hello, " + person; } 
+function warn(message: string): void {  return message; } 
+// *函数重载：以参数数量或类型区分多个同名函数
+// 重载1 
+function watch(cb1: () => void): void;
+// 重载2 
+function watch(cb1: () => void, cb2: (v1: any, v2: any) => void): void;
+// 实现 
+function watch(cb1: () => void, cb2 ? : (v1: any, v2: any) => void) {
+  if (cb1 && cb2) {
+    console.log('执行watch重载2');
+  } else {
+    console.log('执行watch重载1');
+  }
+}
+
+
+// 自定义类型
+// type或interface基本无区别，三方库推荐interface，兼容性更好，项目用type字少，语义贴近
+type Feat = {
+    name: string,
+    // 必定赋值，让编译器忽略
+    desc!: string,
+    // 可选参数
+    callback?: function
+}
+
+interface Feat {  firstName: string;  lastName: string; }
+
+const fea: Feat
+
+// 联合类型 - 变量声明
+let union = string | number
+// 自定义类型混合 -- 类型声明
+typec = typea & typeb
+
+// ts中的类定义
+class Parent {
+  private _foo = "foo"; // 私有属性，不能在类的外部访问 
+  protected bar = "bar"; // 保护属性，可以在子类中访问
+  // 参数属性：构造函数参数加修饰符，能够定义为成员属性 
+  constructor(public tua = "tua") {}
+  // 方法也有修饰符 
+  private someMethod() {}
+  // 存取器：属性方式访问，可添加额外逻辑，控制读写性 
+  get foo() {
+    return this._foo;
+  }
+  set foo(val) {
+
+    this._foo = val;
+  }
+}
+
+// 泛型
+// 不用泛型 
+// interface Result { 
+  //   ok: 0 | 1; 
+//   data: Feature[]; 
+// }
+
+// 使用泛型
+interface Result<T> {  ok: 0 | 1;  data: T; }
+
+// 泛型方法
+function getResult<T>(data: T): Result<T> {  return {ok:1, data}; } 
+// 用尖括号方式指定T为string getResult<string>('hello') 
+// 用类型推断指定T为number getResult(1)
+
+
+```
+
+
+
+**声明文件**
+
+如果想使用第三方库，并且使用ts做类型检查，可以使用声明文件达成目的`xxx.d.ts`, 可以搜索一下是否有定义好的声明文件 `npm i @types/xxx`, element貌似使用js写代码+声明文件的形式写的库
+
+```javascript
+// 扩展vue实例的属性声明
+// shims-vue.d.ts
+import Vue from "vue"; import { AxiosInstance } from "axios";
+declare module "vue/types/vue" {
+  interface Vue {
+    $axios: AxiosInstance;
+  }
+}
+// router声明
+import VueRouter from "vue-router";
+declare const router:VueRouter
+export default router
+
+```
+
+
+
+**装饰器**
+
+> 装饰器可以修饰类和属性，本质上是函数类型，原理类似于高阶函数，在编译阶段运行
+
+```javascript
+// 修饰类：装饰器的参数为类的prototype
+// 本意是传递类实例，但是还没有生成，只好穿prototype
+function Testable (target) { // target == Foo.prototype
+    ctor.testable = true
+}
+
+@Test
+class Foo {
+    
+}
+
+// 修饰属性
+// 接收三个参数，类原型:target, name:属性名称，descriptor:属性描述符
+// 本意是传递类实例，但是还没有生成，只好穿prototype
+function bar (target, name, descriptor) { // ctor == Foo.prototype
+  // 修改属性值: target[name] = 123
+  // 修改函数的值: descriptor.value = function () {}
+}
+
+class Foo {
+    @bar
+    bar
+}
+
+// 可配置的装饰器
+// 装饰器用作工厂，返回真正的装饰器函数
+// 其实@后表达式结果是个函数就ok
+class Foo {
+    @loading('正在加载')
+    getData() {
+        
+    }
+}
+
+// 多个装饰器执行顺序
+// 工厂由外道内生成装饰器
+// 由内到位执行装饰器
+// create2->create1->exec1->exec2
+@dec(2)
+@dec(1)
+class Tua {
+
+}
+```
+
+
+
+ **在vue中使用TS+装饰器** (TODO)
+
+```javascript
+// 
+```
+
+
+
+**vue-property-decorator源码(TODO)**
+
+
+
+**后端实战** （TODO）
+
+搭建TS后端环境，手写后端TS装饰器 -- 模仿课件koa，后端restful框架
+
+
+
+**前端实战** （TODO）
+
+TS+vue
+
+
+
+**TS相关的库**
+
+* vuex-module-decorators
+* vue-property-decorator
+* vue-class-component
+
+
+
+**TODO**
+
+* 官网学习TS的使用
+
+
+
+## 09 Vue项⽬最佳实践 
+
+**项目目录组织（TODO）**
+
+**代码规范（TODO）**
+
+#### **项目配置**
+
+```javascript
+// 端口 devServer.port
+// 配置webpack
+// 查看webpack配置，vue inspect --xxx配置项 --rules
+// 01 对象形式，会和base得config做merge
+configureWebpack: {
+    resolve: {}
+}
+// 02 函数形式
+configureWebpack(config) {
+    config.name = 'xxx'
+}
+// lodash插值，template中可以使用变量，被htmlWebpackPlugin处理
+// <title><%= webpackConfig.name %></title>
+
+// chainWebpack 形式修改
+// rule -- 处理规则
+//  .test -- 应用规则得文件
+//  .include/.exclude -- 近一步缩小范围 exclude > include
+//  .use('xxx'), 使用load插件, loader需要install
+//  .loader('xxx'), 实例化，配置loader插件
+//      .options(), 
+//  .end() this指向上一层
+
+// 环境变量
+// # 只能⽤于服务端 foo=bar 
+// # 可⽤于客户端 VUE_APP_DONG=dong
+
+```
+
+
+
+#### 权限控制策略
+
+权限控制可以分为，路由级别控制和页面级别的控制
+
+**路由级别控制策略**
+
+* 路由权限可以分成三个级别: 无权限控制的，需登录的和需要特殊权限点的
+  * 无权限控制路由：可以直接访问
+  * 需登录路由：登陆后可访问
+  * 需特殊权限点：需要登陆后获取用户权限，具有权限点才可以访问 -- asyncRoutes
+* 生成路由表
+  * 无权限控制路由和登陆后可访问路由放到静态路由表中
+  * 特殊权限点路由，需要获取用户权限后再生成得到，一般两种方法：
+    * 完整路由表+按返回权限点过滤
+    * 直接返回路由配置对象 -- 需要将component string转换为对象
+  * 合成最终的用户路由
+* 权限验证，一般放到router.beforeEach钩子中
+
+
+
+**页面级控制**
+
+* v-permission：指令，如果用户不具有该指令则将dom节点移除，问题是处理不了派生节点
+* v-if="hasPermission('xx')":  使用权限检查函数，可考虑在组件上定义权限点属性
+
+<img src=".\documents\20200819 vue09-最佳实践\作业\20200819+江霖+vue09.png\">
+
+
+
+#### 数据服务
+
+**封装request请求**
+
+* 使用axiso库
+* 设置baseUrl和timeout
+* 请求处理 interceptors.request.use
+  * token处理
+  * 请求数据类型的处理：json/xform...
+* 响应处理 interceptors.response.use
+  * 通用错误处理
+    * 200 + 自定义错误码 -- then回调处理
+    * restful http status code -- catch回调处理
+    * ？如何防止弹出多个错误提示：创建单例模式的实例
+  * 拆包 - resolve(response.data)，axios封装了一层
+
+
+
+**mock数据**
+
+* mockjs本地拦截浏览器请求
+* 使用webpack-dev-server，配置before+mockjs处理
+* 使用easy-mock, 在线服务或者本地安装 **（TODO）**
+
+
+
+#### 测试
+
+测试可以分为单元测试，e2e测试，覆盖率测试和压力测试等
+
+**组件的单元测试有很多好处** 
+
+* 提供描述组件⾏为的⽂档
+* 节省⼿动测试的时间
+* 减少研发新特性时产⽣的 bug
+* 改进设计
+* 促进重构
+
+
+
+**安装**
+
+vue-cli内置了mocha+chai和jest两套框架，语法基本相通，jest=mocha+chai
+
+```bash
+# 新增，选择unit test + e2e test
+# 集成
+vue add @vue/unit-jest 
+vue add @vue/e2e-cypress
+```
+
+
+
+**编写脚本**
+
+路径：`test/unit/xxx.spec.js` .spec是约定
+
+```javascript
+function add(num1, num2) {    return num1 + num2 }
+// 测试套件 test suite
+describe('Kaikeba', () => {    // 测试⽤例 test case    
+    it('测试add函数', () => {        // 断⾔ assert        
+        expect(add(1, 3)).toBe(3)        
+        expect(add(1, 3)).toBe(4)        
+        expect(add(-2, 3)).toBe(1)    
+    }) 
+}) 
+// vue 组件，使用vue测试套件
+import { mount } from '@vue/test-utils'
+
+```
+
+
+
+**执行**
+
+`npm run test:unit`
+
+
+
+**覆盖率测试**
+
+jest自带覆盖率测试，使用mocha的话用`istanbul`做覆盖率测试
+
+```json
+// package.json
+"jest": {
+	"collectCoverage": true,
+    "collectCoverageFrom": ["src/**/*.{js,vue}"], 
+}
+```
+
+
+
+**e2e测试**（TODO）
+
+`npm run test:e2e`
+
+TODO: 如何编写e2e测试，练习，e2e用的什么框架
+
+
+
+**压力测试（TODO）**
+
+benchmark?
+
+http压测工具，vue3.0大圣分享的
+
+
+
+**TODO:** 测试x3练习
 
 
 
