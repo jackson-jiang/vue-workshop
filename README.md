@@ -890,7 +890,7 @@ configureWebpack(config) {
 
 * mockjs本地拦截浏览器请求
 * 使用webpack-dev-server，配置before+mockjs处理
-* 使用easy-mock, 在线服务或者本地安装 **（TODO）**
+* 使用easy-mock, 在线服务或者本地安装 **（TODO）** + docker包
 
 
 
@@ -979,6 +979,124 @@ http压测工具，vue3.0大圣分享的
 
 
 **TODO:** 测试x3练习
+
+
+
+## Vue 3.0
+
+### vue3.0牛逼在哪（TODO, 继续）
+
+* 快
+  * 使用proxy实现响应式，对比vue2不需要初始化的递归定义响应式的过程
+  * 重写dom diff算法，标识静态节点避免不必要更新
+* 代码风格更加舒服 composition api
+  * 相关业务逻辑的data，methods，computed，生命周期可以写在一起
+
+
+
+### 体验vue3.0的四种姿势
+
+* 源码
+
+  ```shell
+  git clone https://github.com/vuejs/vue-next.git 
+  # yarn
+  # package.json，源码映射
+  # "dev": "node scripts/dev.js --sourcemap",
+  # 入口
+  # /src/vue/dist/vue.global.js
+  ```
+
+  
+
+* webpack版本
+
+  ```shell
+  git clone git@github.com:vuejs/vue-next-webpack-preview.git
+  npm install
+  npm run dev
+  ```
+
+  
+
+* vite
+
+  ```shell
+  npm init vite-app <project-name>
+  cd <project-name>
+  npm install
+  npm run dev
+  ```
+
+  
+
+* vue-cli 4.5以上
+
+  ```shell
+  npm install -g @vue/cli @vue/cli-service-global
+  # prototype test
+  vue serve *.js|*.vue
+  # project
+  vue create <pro_name>
+  ```
+
+
+
+### 代码结构
+
+* compiler编译器相关
+* runtime相关
+* vue文件入口
+* reactivity响应式，单独提出来可以用在任何js可运行的地方
+
+
+
+### Vue3响应式原理
+
+> 要实现响应式，需要收集数据的依赖以及在数据变化时进行通知，vue使用的时defineProperty方法，缺点是只能定义已知的key，vue3利用ES6的proxy生成一个对象级别的代理对象，在代理对象中做数据操作的劫持, 响应式收集和通知（effect), 运行时进行的响应式收集
+
+* 定义数据响应式，返回代理对象
+
+  ```json
+  // 代理对象和依赖使用以下数据结构存储，全局
+  // weakmap, 缓存原始对象和代理对象的关系，避免重复定义
+  {
+      // weakmap key: object 原始对象
+      obj: { // value 对象的key和依赖数组
+          key: [dep1, dep2]
+      }
+  }
+  ```
+
+* watch --> effect，依赖变化后执行的任务，effect(fn) 立即执行fn进行依赖收集，并保存fn
+
+* fn()执行，访问响应式数据的proxy.getter --> 调用tract对effect进行收集，双向引用
+
+* 响应式数据赋值，调用proxy.setter --> 调用trigger执行effect
+
+![](.\assets\vue10-reactivity.png)
+
+
+
+
+
+
+
+### TODO
+
+手动实现vue3响应式，包括watch
+
+watch的作用？effect，job，getter？
+
+compisition api
+
+大圣-语雀
+
+开课吧前端会客厅-尤雨溪
+
+大圣的文章
+
+vue3.0源代码研究
 
 
 
